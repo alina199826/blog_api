@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from webapp.models import Tag, Article
+from rest_framework.fields import SerializerMethodField
+
+from webapp.models import Tag, Article, Comment
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -8,23 +10,15 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content', 'author', 'tags', 'created_at', 'updated_at']
         read_only_fields = ['id', 'tags', 'created_at', 'updated_at']
 
-# class ArticleSerializer(serializers.Serializer):
-#     id = serializers.IntegerField(read_only=True)
-#     title = serializers.CharField(max_length=50, required=True)
-#     content = serializers.CharField(max_length=3000, required=True)
-#     author = serializers.PrimaryKeyRelatedField(read_only=True)
-#     tags = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-#     created_at = serializers.DateTimeField(read_only=True)
-#     updated_at = serializers.DateTimeField(read_only=True)
-#
-#     def validate(self, attrs):
-#         return super().validate(attrs)
-#
-#     def create(self, validated_data):
-#         return Article.objects.create(**validated_data)
-#
-#     def update(self, instance, validated_data):
-#         for key, value in validated_data.items():
-#             setattr(instance, key, value)
-#         instance.save()
-#         return instance
+class CommentSerializer(serializers.ModelSerializer):
+
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'text', 'article', 'author', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'article', 'author', 'created_at', 'updated_at']
+
+        def get_author(self, obj):
+            return obj.author.username
+
+

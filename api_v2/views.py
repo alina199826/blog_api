@@ -7,9 +7,8 @@ import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from webapp.models import Article
-from api_v2.serializers import ArticleSerializer
-
+from webapp.models import Article, Comment
+from api_v2.serializers import ArticleSerializer, CommentSerializer
 
 class ArticleView(APIView):
     def get(self, request, *args, **kwargs):
@@ -36,4 +35,33 @@ class ArticleView(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=400)
+
+    def delete(self, request, pk):
+        article = get_object_or_404(Article.objects.all(), pk=pk)
+        article.delete()
+        return Response({
+            "message": "Article with id `{}` has been deleted.".format(pk)
+        }, status=204)
+
+class ArticleDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return Article.objects.get(pk=pk)
+        except Article.DoesNotExist:
+            raise 'error'
+
+    def get(self, request, pk):
+        article = self.get_object(pk)
+        serializer = ArticleSerializer(article)
+        return Response(serializer.data)
+class CommentArticleView(APIView):
+
+    def get(self, request, pk, *args, **kwargs):
+        article = get_object_or_404(Article.objects.all(), pk=pk)
+        if article is None:
+            return Response({'error': 'Post not found'}, status=400)
+        comments = Comment.objects.filter(pk=article)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=200)
+
 
