@@ -1,14 +1,11 @@
-from django.http import JsonResponse, HttpResponseNotAllowed
-from django.views import View
-from django.shortcuts import get_object_or_404
 
-import json
+from django.shortcuts import get_object_or_404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from webapp.models import Article, Comment
-from api_v2.serializers import ArticleSerializer, CommentSerializer
+from webapp.models import Article
+from api_v2.serializers import ArticleSerializer
 
 class ArticleView(APIView):
     def get(self, request, *args, **kwargs):
@@ -44,24 +41,10 @@ class ArticleView(APIView):
         }, status=204)
 
 class ArticleDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return Article.objects.get(pk=pk)
-        except Article.DoesNotExist:
-            raise 'error'
 
     def get(self, request, pk):
-        article = self.get_object(pk)
+        article = get_object_or_404(Article.objects.all(), pk=pk)
         serializer = ArticleSerializer(article)
         return Response(serializer.data)
-class CommentArticleView(APIView):
-
-    def get(self, request, pk, *args, **kwargs):
-        article = get_object_or_404(Article.objects.all(), pk=pk)
-        if article is None:
-            return Response({'error': 'Post not found'}, status=400)
-        comments = Comment.objects.filter(pk=article)
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data, status=200)
 
 
